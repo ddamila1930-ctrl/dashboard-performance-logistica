@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard de Performance Logística & SLA</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --bg-color: #0f172a;
+            --card-bg: #1e293b;
+            --text-color: #f8fafc;
+            --text-muted: #94a3b8;
+            --accent-blue: #38bdf8;
+            --accent-green: #4ade80;
+            --accent-red: #f87171;
+            --accent-orange: #fb923c;
+            --border-color: #334155;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            padding: 24px;
+        }
+
+        header {
+            margin-bottom: 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 16px;
+        }
+
+        header h1 {
+            font-size: 1.5rem;
+            color: var(--accent-blue);
+        }
+
+        header p {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .metric-card {
+            background-color: var(--card-bg);
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+        }
+
+        .metric-card h3 {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            margin-bottom: 8px;
+        }
+
+        .metric-card .value {
+            font-size: 1.8rem;
+            font-weight: bold;
+        }
+
+        .charts-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 24px;
+            margin-bottom: 24px;
+        }
+
+        .chart-container {
+            background-color: var(--card-bg);
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+        }
+
+        .chart-container h3 {
+            font-size: 1rem;
+            margin-bottom: 16px;
+            color: var(--text-color);
+        }
+
+        .table-container {
+            background-color: var(--card-bg);
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+        }
+
+        .table-container h3 {
+            font-size: 1rem;
+            margin-bottom: 16px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+            font-size: 0.9rem;
+        }
+
+        th, td {
+            padding: 12px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        th {
+            color: var(--text-muted);
+            font-weight: 600;
+        }
+
+        .status-badge {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: bold;
+        }
+
+        .badge-danger { background-color: rgba(248, 113, 113, 0.2); color: var(--accent-red); }
+        .badge-warning { background-color: rgba(251, 146, 60, 0.2); color: var(--accent-orange); }
+        .badge-success { background-color: rgba(74, 222, 128, 0.2); color: var(--accent-green); }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div>
+            <h1>📦 Monitor de Performance Logística & SLA</h1>
+            <p>Painel de Controle Operacional - Gestão de Entregas e Faturamento</p>
+        </div>
+        <div>
+            <span class="status-badge badge-success">SISTEMAS OPERACIONAIS</span>
+        </div>
+    </header>
+
+    <!-- Métricas Operacionais (KPIs) -->
+    <section class="metrics-grid">
+        <div class="metric-card">
+            <h3>Taxa OTIF (On-Time In-Full)</h3>
+            <div class="value" style="color: var(--accent-green);">94.2%</div>
+        </div>
+        <div class="metric-card">
+            <h3>Backlog / Pedidos Retidos</h3>
+            <div class="value" style="color: var(--accent-orange);">42</div>
+        </div>
+        <div class="metric-card">
+            <h3>Lead Time Médio CD</h3>
+            <div class="value" style="color: var(--accent-blue);">1.4 Dias</div>
+        </div>
+        <div class="metric-card">
+            <h3>Alertas de Risco de SLA</h3>
+            <div class="value" style="color: var(--accent-red);">8 Pedidos</div>
+        </div>
+    </section>
+
+    <!-- Gráficos de Desempenho -->
+    <section class="charts-grid">
+        <div class="chart-container">
+            <h3>Status da Carteira por Fator Operacional</h3>
+            <canvas id="statusChart"></canvas>
+        </div>
+        <div class="chart-container">
+            <h3>Volume de Expedição Semanal (Unidades)</h3>
+            <canvas id="expedicaoChart"></canvas>
+        </div>
+    </section>
+
+    <!-- Tabela de Alerta de Pedidos Críticos -->
+    <section class="table-container">
+        <h3>🚨 Pedidos Críticos em Risco de Estouro de SLA</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>ID Pedido</th>
+                    <th>Cliente</th>
+                    <th>Origem / Destino</th>
+                    <th>Data Limite SLA</th>
+                    <th>Status Atual</th>
+                    <th>Ação Recomendada</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>PED-8821</td>
+                    <td>Magasins Express</td>
+                    <td>CD Interlagos → SP Capital</td>
+                    <td>Hoje, 18:00</td>
+                    <td><span class="status-badge badge-danger">Bloqueio WMS</span></td>
+                    <td>Priorizar liberação de doca</td>
+                </tr>
+                <tr>
+                    <td>PED-8834</td>
+                    <td>Atacado Central</td>
+                    <td>CD Interlagos → Campinas/SP</td>
+                    <td>Amanhã, 10:00</td>
+                    <td><span class="status-badge badge-warning">Aguardando Remessa</span></td>
+                    <td>Gerar ordem de expedição no SAP</td>
+                </tr>
+                <tr>
+                    <td>PED-8840</td>
+                    <td>Logística Sul</td>
+                    <td>CD Interlagos → Curitiba/PR</td>
+                    <td>Amanhã, 14:00</td>
+                    <td><span class="status-badge badge-warning">Pendente Faturamento</span></td>
+                    <td>Aprovar crédito de cliente</td>
+                </tr>
+            </tbody>
+        </table>
+    </section>
+
+    <script>
+        // Gráfico de Pizza: Status da Carteira
+        const ctxStatus = document.getElementById('statusChart').getContext('2d');
+        new Chart(ctxStatus, {
+            type: 'doughnut',
+            data: {
+                labels: ['Entregues no Prazo', 'Em Transporte', 'Bloqueio ERP/WMS', 'Aguardando Remessa'],
+                datasets: [{
+                    data: [320, 85, 18, 24],
+                    backgroundColor: ['#4ade80', '#38bdf8', '#f87171', '#fb923c']
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: { position: 'bottom', labels: { color: '#f8fafc' } }
+                }
+            }
+        });
+
+        // Gráfico de Barras: Expedição Semanal
+        const ctxExpedicao = document.getElementById('expedicaoChart').getContext('2d');
+        new Chart(ctxExpedicao, {
+            type: 'bar',
+            data: {
+                labels: ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'],
+                datasets: [{
+                    label: 'Volume Expedido',
+                    data: [1200, 1450, 1300, 1600, 1850, 900],
+                    backgroundColor: '#38bdf8'
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: { display: false }
+                },
+                scales: {
+                    x: { ticks: { color: '#94a3b8' } },
+                    y: { ticks: { color: '#94a3b8' } }
+                }
+            }
+        });
+    </script>
+</body>
+</html>
